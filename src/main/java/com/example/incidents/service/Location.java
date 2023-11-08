@@ -1,4 +1,4 @@
-package com.example.incidents.data;
+package com.example.incidents.service;
 
 /**
  * Data class for a location.

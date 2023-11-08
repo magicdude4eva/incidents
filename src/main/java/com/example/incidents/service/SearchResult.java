@@ -1,4 +1,4 @@
-package com.example.incidents.es;
+package com.example.incidents.service;
 
 import java.util.List;
 

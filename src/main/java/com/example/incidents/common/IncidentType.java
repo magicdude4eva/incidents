@@ -1,4 +1,4 @@
-package com.example.incidents.data;
+package com.example.incidents.common;
 
 public enum IncidentType {
     FIRE,

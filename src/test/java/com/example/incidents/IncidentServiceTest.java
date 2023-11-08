@@ -1,16 +1,11 @@
 package com.example.incidents;
 
-import com.example.incidents.data.Incident;
-import com.example.incidents.data.IncidentSeverity;
-import com.example.incidents.data.IncidentType;
-import com.example.incidents.data.Location;
-import com.example.incidents.data.SearchCriteria;
-import com.example.incidents.es.ESClientFactory;
-import com.example.incidents.es.ESException;
-import com.example.incidents.service.ConfigProperties;
-import com.example.incidents.service.IncidentService;
-import com.example.incidents.service.TechnicalException;
-import org.junit.jupiter.api.BeforeEach;
+import com.example.incidents.common.IncidentSeverity;
+import com.example.incidents.common.IncidentType;
+import com.example.incidents.service.Incident;
+import com.example.incidents.service.Location;
+import com.example.incidents.service.SearchCriteria;
+import com.example.incidents.service.IncidentsService;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.logging.Logger;
 import org.junit.platform.commons.logging.LoggerFactory;
@@ -18,10 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -34,31 +27,12 @@ import static org.junit.jupiter.api.Assertions.fail;
  * Test cases for "IncidentService".
  */
 @SpringBootTest
-public class IncidentServiceTest {
+public class IncidentServiceTest extends BaseTest {
 
-    final static Logger LOGGER = LoggerFactory.getLogger(IncidentServiceTest.class);
-
-    @Autowired
-    ConfigProperties configProperties;
+    private final static Logger LOGGER = LoggerFactory.getLogger(IncidentServiceTest.class);
 
     @Autowired
-    ESClientFactory esClientFactory;
-
-    @Autowired
-    IncidentService incidentsService;
-
-    /**
-     * All documents in the index used for testing will be deleted before each test.
-     */
-    @BeforeEach
-    void prepareData() {
-        try {
-            esClientFactory.create().deleteDocuments(configProperties.incidentsIndexName());
-            refreshAndFlushIndex();
-        } catch (ESException esException) {
-            LOGGER.error(esException, esException::getMessage);
-        }
-    }
+    IncidentsService incidentsService;
 
     /**
      * (1) Create incidents for all combinations of "type" and "severity"
@@ -71,7 +45,7 @@ public class IncidentServiceTest {
 
             // (1) Create incidents for all combinations of "type" and "severity"
             createIncidentsProduct();
-            refreshAndFlushIndex();
+            flushAndRefreshIndex();
 
             // (2) Check, that the number of documents created matches the expected number
             assertEquals(
@@ -96,7 +70,7 @@ public class IncidentServiceTest {
 
             // (1) Create incidents for all combinations of "type" and "severity"
             final var createdIncidentsMap = createIncidentsProduct();
-            refreshAndFlushIndex();
+            flushAndRefreshIndex();
 
             // (2) Search without search criteria and check, that all entries have been found and are correctly sorted.
             final var searchResult = incidentsService.search(
@@ -125,7 +99,7 @@ public class IncidentServiceTest {
 
             // (1) Create incidents for all combinations of "type" and "severity"
             final var createdIncidentsMap = createIncidentsProduct();
-            refreshAndFlushIndex();
+            flushAndRefreshIndex();
 
             // (2) Search by type = "FIRE" and check number and IDs of result items
             {
@@ -138,7 +112,7 @@ public class IncidentServiceTest {
                 assertCorrectSorting(searchResult.resultSet());
                 assertEquals(
                         createdIncidentsMap.entrySet().stream()
-                                .filter(entry -> entry.getValue().type() == IncidentType.FIRE)
+                                .filter(entry -> entry.getValue().type().equals(IncidentType.FIRE.name()))
                                 .map(Map.Entry::getKey)
                                 .collect(Collectors.toSet()),
                         searchResult.resultSet().stream()
@@ -158,8 +132,8 @@ public class IncidentServiceTest {
                 assertCorrectSorting(searchResult.resultSet());
                 assertEquals(
                         createdIncidentsMap.entrySet().stream()
-                                .filter(entry -> entry.getValue().type() == IncidentType.FIRE &&
-                                        entry.getValue().severity() == IncidentSeverity.LOW)
+                                .filter(entry -> entry.getValue().type().equals(IncidentType.FIRE.name()) &&
+                                        entry.getValue().severity().equals(IncidentSeverity.LOW.name()))
                                 .map(Map.Entry::getKey)
                                 .collect(Collectors.toSet()),
                         searchResult.resultSet().stream()
@@ -171,8 +145,8 @@ public class IncidentServiceTest {
             //     Search by these three criteria and check correct result.
             {
                 final var expectedIncidents = createdIncidentsMap.values().stream()
-                        .filter(incident -> incident.type() == IncidentType.MEDICAL &&
-                                incident.severity() == IncidentSeverity.MEDIUM)
+                        .filter(incident -> incident.type().equals(IncidentType.MEDICAL.name()) &&
+                                incident.severity().equals(IncidentSeverity.MEDIUM.name()))
                         .toList();
                 assertEquals(1, expectedIncidents.size());
 
@@ -217,7 +191,7 @@ public class IncidentServiceTest {
                             new Location(46.615415015670074, 14.043264411560829),
                             Instant.now(), IncidentSeverity.MEDIUM));
 
-            refreshAndFlushIndex();
+            flushAndRefreshIndex();
 
             final var cityCenter = new Location(46.62410171042155, 14.307600105143639);
 
@@ -261,15 +235,6 @@ public class IncidentServiceTest {
     }
 
     /**
-     * Check, that the ES-index used for the test is empty.
-     */
-    private void assertIndexIsEmpty() throws ESException {
-        assertEquals(0L, esClientFactory
-                .create()
-                .countDocuments(configProperties.incidentsIndexName()));
-    }
-
-    /**
      * Check, that the resultSet-items are sorted by "timestamp" descending.
      * @param resultSet a list of incidents
      */
@@ -279,41 +244,5 @@ public class IncidentServiceTest {
             final var curr = resultSet.get(i);
             assertTrue(prev.timestamp().compareTo(curr.timestamp()) >= 0);
         }
-    }
-
-    /**
-     * Create incidents for each combination of type and severity. The location is a random value,
-     * for timestamp the current UTC-time will be used.
-     *
-     * @throws TechnicalException when creating the incident fails
-     */
-    private Map<UUID, Incident> createIncidentsProduct() throws TechnicalException {
-        final HashMap<UUID, Incident> result = new HashMap<>();
-        final var random = new Random();
-
-        for (IncidentType type : IncidentType.values()) {
-            for (IncidentSeverity severity : IncidentSeverity.values()) {
-                final var location = new Location(
-                        random.nextDouble(360.0) - 180.0,
-                        random.nextDouble(180.0) - 90.0);
-
-                final var incident = new Incident(UUID.randomUUID(), type, location, Instant.now(), severity);
-                result.put(incidentsService.logIncident(incident), incident);
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Perform a flush and a refresh on all ES-indices.
-     * Both are synchronous operations that will make the client wait.
-     * For unit tests this is necessary.
-     *
-     * @throws ESException when a call to ES fails
-     */
-    private void refreshAndFlushIndex() throws ESException {
-        esClientFactory.create().flushIndex(configProperties.incidentsIndexName());
-        esClientFactory.create().refreshIndex(configProperties.incidentsIndexName());
     }
 }

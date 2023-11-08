@@ -1,6 +1,7 @@
 package com.example.incidents.api;
 
-import jakarta.validation.constraints.NotBlank;
+import com.example.incidents.common.IncidentSeverity;
+import com.example.incidents.common.IncidentType;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.Instant;
@@ -10,32 +11,32 @@ import java.time.Instant;
  */
 public class LogRequest {
 
-    @NotBlank(message = "The type is required")
-    String type;
+    @NotNull(message = "The type is required")
+    IncidentType type;
 
     @NotNull(message = "The Location is required")
-    ApiLocation apiLocation;
+    Location location;
 
     @NotNull(message = "The timestamp is required")
     Instant timestamp;
 
-    @NotBlank(message = "The severity is required")
-    String severity;
+    @NotNull(message = "The severity is required")
+    IncidentSeverity severity;
 
-    public String getType() {
+    public IncidentType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(IncidentType type) {
         this.type = type;
     }
 
-    public ApiLocation getLocation() {
-        return apiLocation;
+    public Location getLocation() {
+        return location;
     }
 
-    public void setLocation(ApiLocation apiLocation) {
-        this.apiLocation = apiLocation;
+    public void setLocation(Location location) {
+        this.location = location;
     }
 
     public Instant getTimestamp() {
@@ -46,11 +47,11 @@ public class LogRequest {
         this.timestamp = timestamp;
     }
 
-    public String getSeverity() {
+    public IncidentSeverity getSeverity() {
         return severity;
     }
 
-    public void setSeverity(String severity) {
+    public void setSeverity(IncidentSeverity severity) {
         this.severity = severity;
     }
 }

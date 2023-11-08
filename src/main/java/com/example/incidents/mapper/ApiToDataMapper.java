@@ -2,9 +2,11 @@ package com.example.incidents.mapper;
 
 import com.example.incidents.api.LogRequest;
 import com.example.incidents.api.SearchRequest;
+import com.example.incidents.api.SearchResponse;
 import com.example.incidents.api.SearchResponseItem;
-import com.example.incidents.data.Incident;
-import com.example.incidents.data.SearchCriteria;
+import com.example.incidents.service.Incident;
+import com.example.incidents.service.SearchCriteria;
+import com.example.incidents.service.SearchResult;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -20,4 +22,6 @@ public interface ApiToDataMapper {
     SearchCriteria searchRequestToCriteria(SearchRequest searchRequest);
 
     SearchResponseItem incidentToSearchResponse(Incident incident);
+
+    SearchResponse searchResultToResponse(SearchResult searchResult);
 }

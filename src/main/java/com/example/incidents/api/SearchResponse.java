@@ -5,6 +5,7 @@ import java.util.List;
 
 public class SearchResponse {
     long totalCount;
+    int resultCount;
     List<SearchResponseItem> resultSet = new ArrayList<>();
 
     public long getTotalCount() {
@@ -13,6 +14,14 @@ public class SearchResponse {
 
     public void setTotalCount(long totalCount) {
         this.totalCount = totalCount;
+    }
+
+    public int getResultCount() {
+        return resultCount;
+    }
+
+    public void setResultCount(int resultCount) {
+        this.resultCount = resultCount;
     }
 
     public List<SearchResponseItem> getResultSet() {

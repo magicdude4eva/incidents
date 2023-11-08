@@ -1,7 +1,11 @@
 package com.example.incidents.api;
 
+import com.example.incidents.common.IncidentSeverity;
+import com.example.incidents.common.IncidentType;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 
 import java.time.Instant;
@@ -12,79 +16,103 @@ import java.time.Instant;
 public class SearchRequest {
 
     // First result item to be included in the result
+    @NotNull(message = "The offset is mandatory")
     @PositiveOrZero(message = "The offset needs to be greater or equal to 0")
-    long offset;
+    Integer offset;
 
     // Number of items in result - if 0, entire result set will be returned
     // The maximum number of items is limited to 10.000,
     // as this is the maximum number of results ES will return in one response.
+    @NotNull(message = "The resultCount is mandatory")
     @DecimalMin(value = "0", message = "The resultCount needs to be greater or equal to 0")
     @DecimalMax(value = "10000", message = "The resultCount needs to be less or equal to 10.000")
-    long resultCount;
+    Integer resultCount;
 
-    String type;
+    @Valid
+    IncidentType type;
 
-    ApiLocation location;
+    // Location and distance for searching - allowed to be null.
+    // If this element exists, it needs to be complete.
+    @Valid
+    LocationAndDistance locationAndDistance;
 
-    Instant minTimestamp;
+    // Timestamp range for searching - allowed to be null.
+    // If this element exists, it needs to be complete.
+    @Valid
+    TimestampRange timestampRange;
 
-    Instant maxTimestamp;
+    @Valid
+    IncidentSeverity severity;
 
-    String severity;
+    public static class TimestampRange {
+        @NotNull(message = "The minTimestamp is mandatory")
+        Instant minTimestamp;
 
-    public long getOffset() {
+        @NotNull(message = "The maxTimestamp is mandatory")
+        Instant maxTimestamp;
+
+        public Instant getMinTimestamp() {
+            return minTimestamp;
+        }
+
+        public void setMinTimestamp(Instant minTimestamp) {
+            this.minTimestamp = minTimestamp;
+        }
+
+        public Instant getMaxTimestamp() {
+            return maxTimestamp;
+        }
+
+        public void setMaxTimestamp(Instant maxTimestamp) {
+            this.maxTimestamp = maxTimestamp;
+        }
+    }
+
+    public Integer getOffset() {
         return offset;
     }
 
-    public void setOffset(long offset) {
+    public void setOffset(Integer offset) {
         this.offset = offset;
     }
 
-    public long getResultCount() {
+    public Integer getResultCount() {
         return resultCount;
     }
 
-    public void setResultCount(long resultCount) {
+    public void setResultCount(Integer resultCount) {
         this.resultCount = resultCount;
     }
 
-    public String getType() {
+    public IncidentType getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(IncidentType type) {
         this.type = type;
     }
 
-    public ApiLocation getLocation() {
-        return location;
+    public LocationAndDistance getLocationAndDistance() {
+        return locationAndDistance;
     }
 
-    public void setLocation(ApiLocation apiLocation) {
-        this.location = apiLocation;
+    public void setLocationAndDistance(LocationAndDistance locationAndDistance) {
+        this.locationAndDistance = locationAndDistance;
     }
 
-    public Instant getMinTimestamp() {
-        return minTimestamp;
+    public TimestampRange getTimestampRange() {
+        return timestampRange;
     }
 
-    public void setMinTimestampe(Instant minTimestamp) {
-        this.minTimestamp = minTimestamp;
+    public void setTimestampRange(TimestampRange timestampRange) {
+        this.timestampRange = timestampRange;
     }
 
-    public Instant getMaxTimestamp() {
-        return maxTimestamp;
-    }
-
-    public void setMaxTimestamp(Instant maxTimestamp) {
-        this.maxTimestamp = maxTimestamp;
-    }
-
-    public String getSeverity() {
+    public IncidentSeverity getSeverity() {
         return severity;
     }
 
-    public void setSeverity(String severity) {
+    public void setSeverity(IncidentSeverity severity) {
         this.severity = severity;
     }
 }

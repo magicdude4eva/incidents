@@ -8,8 +8,6 @@ import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
-import com.example.incidents.data.SearchCriteria;
-import com.example.incidents.data.SearchResult;
 import com.example.incidents.es.ESClientFactory;
 import com.example.incidents.es.ESException;
 import com.example.incidents.mapper.DataToESMapper;
@@ -27,9 +25,9 @@ import java.util.UUID;
 
 @Component
 @EnableConfigurationProperties(ConfigProperties.class)
-public class IncidentService {
+public class IncidentsService {
 
-    final static Logger LOGGER = LoggerFactory.getLogger(IncidentService.class);
+    final static Logger LOGGER = LoggerFactory.getLogger(IncidentsService.class);
 
     @Autowired
     ConfigProperties configProperties;
@@ -45,9 +43,9 @@ public class IncidentService {
      *
      * @return the UUID of the newly created dataIncident
      *
-     * @throws TechnicalException if the request to ES failed
+     * @throws ServiceException if the request to ES failed
      */
-    public UUID logIncident(@NotNull com.example.incidents.data.Incident dataIncident) throws TechnicalException {
+    public UUID logIncident(@NotNull Incident dataIncident) throws ServiceException {
         try {
             final var esIncident = DataToESMapper.INSTANCE.dataIncidentToES(dataIncident);
             final var response = esClientFactory
@@ -59,7 +57,16 @@ public class IncidentService {
         }
     }
 
-    public SearchResult search(@NotNull SearchCriteria searchCriteria) throws TechnicalException {
+    /**
+     * Search for incidents as described by "searchCriteria".
+     *
+     * @param searchCriteria requested filtering
+     *
+     * @return found incidents, total number of results, number of results in current result set
+     *
+     * @throws ServiceException on any error
+     */
+    public SearchResult search(@NotNull SearchCriteria searchCriteria) throws ServiceException {
         try {
             // Build the base query - uses the correct index,
             // parameters "offset" and "resultCount", and add the correct sorting (by "timestamp" descending).
@@ -83,7 +90,16 @@ public class IncidentService {
         }
     }
 
-    private Query buildSearchQuery(SearchCriteria searchCriteria) {
+    /**
+     * Build an ES-query using the provided search criteria. Sorting is always done by timestamp descending.
+     *
+     * @param searchCriteria describes requested filtering
+     *
+     * @return ES-query
+     *
+     * @throws InvalidParameterException if "searchCriteria" contains invalid parameters
+     */
+    private Query buildSearchQuery(SearchCriteria searchCriteria) throws InvalidParameterException {
         final var subQueries = new ArrayList<Query>();
 
         if (Objects.nonNull(searchCriteria.type())) {
@@ -92,20 +108,25 @@ public class IncidentService {
         }
 
         if (Objects.nonNull(searchCriteria.locationAndDistance())) {
-            final var searchLocation = searchCriteria.locationAndDistance().location();
+            final var location = searchCriteria.locationAndDistance().location();
             final var distanceAsString = String.format("%dkm", searchCriteria.locationAndDistance().distanceInKm());
 
             subQueries.add(
                     GeoDistanceQuery.of(g -> g.field("location")
-                            .location(l -> l.latlon(p -> p.lat(searchLocation.lat()).lon(searchLocation.lon())))
+                            .location(l -> l.latlon(p -> p.lat(location.lat()).lon(location.lon())))
                             .distance(distanceAsString))._toQuery());
         }
 
         if (Objects.nonNull(searchCriteria.timestampRange())) {
+            final var timestampRange = searchCriteria.timestampRange();
+            if (timestampRange.minTimestamp().compareTo(timestampRange.maxTimestamp()) > 0) {
+                throw new InvalidParameterException("minTimestamp supposed to be less than or equal to maxtimestamp");
+            }
+
             subQueries.add(
                     RangeQuery.of(r -> r.field("timestamp")
-                            .from(searchCriteria.timestampRange().minTimestamp().toString())
-                            .to(searchCriteria.timestampRange().maxTimestamp().toString()))._toQuery());
+                            .from(timestampRange.minTimestamp().toString())
+                            .to(timestampRange.maxTimestamp().toString()))._toQuery());
         }
 
         if (Objects.nonNull(searchCriteria.severity())) {

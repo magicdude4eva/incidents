@@ -7,9 +7,7 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.elasticsearch.core.search.TotalHits;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.StdDateFormat;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.example.incidents.mapper.CommonObjectMapper;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.apache.http.HttpHost;
@@ -17,7 +15,6 @@ import org.apache.http.client.CredentialsProvider;
 import org.elasticsearch.client.RestClient;
 
 import javax.net.ssl.SSLContext;
-import java.text.SimpleDateFormat;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -50,7 +47,7 @@ public class ESClient {
                 .build();
 
         // Create the transport with a Jackson mapper
-        final var transport = new RestClientTransport(restClient, new JacksonJsonpMapper(createObjectMapper()));
+        final var transport = new RestClientTransport(restClient, new JacksonJsonpMapper(CommonObjectMapper.create()));
 
         // And create the API client
         elasticsearchClient = new ElasticsearchClient(transport);
@@ -81,7 +78,8 @@ public class ESClient {
     public void deleteDocuments(@NotBlank String indexName) throws ESException {
         if (indexExists(indexName)) {
             try {
-                elasticsearchClient.deleteByQuery(d -> d.index(indexName).query(MatchAllQuery.of(m -> m)._toQuery()));
+                elasticsearchClient.deleteByQuery(d -> d.index(indexName)
+                        .query(MatchAllQuery.of(m -> m)._toQuery()));
             } catch (Exception exception) {
                 throw new ESException("indices.delete", indexName, exception);
             }
@@ -98,7 +96,6 @@ public class ESClient {
      */
     public void flushIndex(@NotBlank String indexName) throws ESException {
         try {
-//            elasticsearchClient.indices().flush(req -> req.index(indexName).force(true).waitIfOngoing(true));
             elasticsearchClient.indices().flush(req -> req.force(true).waitIfOngoing(true));
         } catch (Exception exception) {
             throw new ESException("indices.flush", indexName, exception);
@@ -114,7 +111,6 @@ public class ESClient {
      */
     public void refreshIndex(@NotBlank String indexName) throws ESException {
         try {
-//            elasticsearchClient.indices().refresh(req -> req.index(indexName));
             elasticsearchClient.indices().refresh(req -> req);
         } catch (Exception exception) {
             throw new ESException("indices.refresh", indexName, exception);
@@ -174,26 +170,15 @@ public class ESClient {
             final var response = elasticsearchClient.search(searchRequest, Incident.class);
 
             final var totalHits = Optional.ofNullable(response.hits().total());
+            final var resultCount = response.hits().hits().size();
             final var resultSet = response.hits().hits()
                     .stream()
                     .map(Hit::source)
                     .toList();
 
-            return new SearchResult(totalHits.map(TotalHits::value).orElse(0L), resultSet);
+            return new SearchResult(totalHits.map(TotalHits::value).orElse(0L), resultCount, resultSet);
         } catch (Exception exception) {
             throw new ESException("search", String.join(", ", searchRequest.index()), exception);
         }
-    }
-
-    /**
-     * Creates an instance of "ObjectMapper" necessary for mapping between data classes and json.
-     * Uses the time module to handle "Instant"-instances (necessary for timestamps) correctly.
-     *
-     * @return correctly configured "ObjectMapper"-instance
-     */
-    private static ObjectMapper createObjectMapper() {
-        return new ObjectMapper().
-                registerModule(new JavaTimeModule()).
-                setDateFormat(new SimpleDateFormat(StdDateFormat.DATE_FORMAT_STR_ISO8601));
     }
 }

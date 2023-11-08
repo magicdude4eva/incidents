@@ -1,4 +1,7 @@
-package com.example.incidents.data;
+package com.example.incidents.service;
+
+import com.example.incidents.common.IncidentSeverity;
+import com.example.incidents.common.IncidentType;
 
 import java.time.Instant;
 import java.util.UUID;
