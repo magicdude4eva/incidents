@@ -11,7 +11,7 @@ interact with ElasticSearch to log and query real-time emergency incidents.
 
 1. endpoint `<host>/incidents/log` is available to create new incidents
 2. Unit-test for service (create & search incidents)
-3. API-tests for `/incidents/log` (positive & negative test cases)
+3. API-tests for `/incidents/log` and `/incidents/search` (positive & negative test cases)
 
 ### Missing features:
 
