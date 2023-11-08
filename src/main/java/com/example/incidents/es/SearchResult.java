@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Search result container
  *
- * @param totalCount total number of found items (possibly larger than "resultCount"
+ * @param totalCount total number of found items (possibly larger than "resultCount")
  * @param resultCount number of elements in "resultSet"
  * @param resultSet found incidents
  */

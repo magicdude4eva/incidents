@@ -1,6 +1,6 @@
 package com.example.incidents.common;
 
-public enum IncidentSeverity {
+public enum IncidentSeverityLevel {
     LOW,
     MEDIUM,
     HIGH

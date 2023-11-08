@@ -1,6 +1,6 @@
 package com.example.incidents;
 
-import com.example.incidents.common.IncidentSeverity;
+import com.example.incidents.common.IncidentSeverityLevel;
 import com.example.incidents.common.IncidentType;
 import com.example.incidents.es.ESClientFactory;
 import com.example.incidents.es.ESException;
@@ -22,7 +22,8 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Contains code and data common to all tests.
+ * Contains code and data common to service- and API-tests.
+ * All functions in this class use the ESClient (= lowest level) directly.
  */
 public abstract class BaseTest {
 
@@ -35,20 +36,19 @@ public abstract class BaseTest {
     ESClientFactory esClientFactory;
 
     /**
-     * All documents in the index used for testing will be deleted before each test.
+     * The test index will be recreated before each test. Necessary to have a clean environment.
      */
     @BeforeEach
     void prepareData() {
         try {
-            deleteAllDocuments();
-            flushAndRefreshIndex();
+            recreateIndex();
         } catch (ESException esException) {
             LOGGER.error(esException, esException::getMessage);
         }
     }
 
     /**
-     * Create incidents for each combination of type and severity. The location is a random value,
+     * Create incidents for each combination of incidentType and severityLevel. The location is a random value,
      * for timestamp the current UTC-time will be used.
      *
      * @return mapping from UUID => Incident for checking
@@ -60,7 +60,7 @@ public abstract class BaseTest {
         final var random = new Random();
 
         for (IncidentType type : IncidentType.values()) {
-            for (IncidentSeverity severity : IncidentSeverity.values()) {
+            for (IncidentSeverityLevel severity : IncidentSeverityLevel.values()) {
                 final var geopoint = GeoPoint.fromPoint(new Point(
                         random.nextDouble(360.0) - 180.0,
                         random.nextDouble(180.0) - 90.0));
@@ -78,12 +78,13 @@ public abstract class BaseTest {
     }
 
     /**
-     * Delete all documents in the ES-index used for tests.
+     * Delete the test index and recreate it to have a clean environment before each test.
      *
      * @throws ESException when a call to ES fails
      */
-    protected void deleteAllDocuments() throws ESException {
-        esClientFactory.create().deleteDocuments(configProperties.incidentsIndexName());
+    protected void recreateIndex() throws ESException {
+        esClientFactory.create().deleteIndex(configProperties.incidentsIndexName());
+        esClientFactory.create().createIndexForIncidents(configProperties.incidentsIndexName());
     }
 
     /**
@@ -107,4 +108,16 @@ public abstract class BaseTest {
                 .countDocuments(configProperties.incidentsIndexName()));
     }
 
+    /**
+     * Count the number of elements in the test index.
+     *
+     * @return number of documents
+     *
+     * @throws ESException when a call to ES fails
+     */
+    protected long countDocumentsInIndex() throws ESException {
+        return esClientFactory
+                .create()
+                .countDocuments(configProperties.incidentsIndexName());
+    }
 }

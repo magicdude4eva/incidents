@@ -6,6 +6,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.text.SimpleDateFormat;
 
+/**
+ * Object mapper used for serializing / deserializing data that is written to / read from ES.
+ */
 public class CommonObjectMapper {
 
     private CommonObjectMapper() {

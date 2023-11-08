@@ -8,6 +8,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+/**
+ * Very basic test to check, whether SprintBoot initializes the API- and service-class correctly.
+ */
 @SpringBootTest
 class IncidentsApplicationTests {
 
@@ -18,7 +21,7 @@ class IncidentsApplicationTests {
 	IncidentsService incidentsService;
 
 	/**
-	 * Make sure, that the application container creates the API-class (i.e. controller).
+	 * Make sure, that the application container creates our service classes.
 	 */
 	@Test
 	void contextLoads() {

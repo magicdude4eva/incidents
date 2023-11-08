@@ -17,6 +17,16 @@ public class IncidentsApi {
     @Autowired
     IncidentsService incidentsService;
 
+    /**
+     * Log (i.e. create) a new incident. For the new item a UUID will be created as ID.
+     * This is the endpoint's response.
+     *
+     * @param logRequest the new incident to be created
+     *
+     * @return UUID of newly created incident
+     *
+     * @throws ServiceException will be mapped to HTTP-code IncidentExceptionController
+     */
     @PutMapping(
             value = "/incidents/log",
             consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -28,6 +38,16 @@ public class IncidentsApi {
         return new LogResponse(id);
     }
 
+    /**
+     * Search incidents based on "searchRequest"
+     *
+     * @param searchRequest contains search parameters
+     *
+     * @return a page of the search result holding total number of matches, number of matches in current page,
+     * and the matches (i.e. incidents)
+     *
+     * @throws ServiceException will be mapped to HTTP-code IncidentExceptionController
+     */
     @PostMapping(
             value = "/incidents/search",
             consumes = MediaType.APPLICATION_JSON_VALUE,

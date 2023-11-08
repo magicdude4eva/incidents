@@ -1,6 +1,6 @@
 package com.example.incidents;
 
-import com.example.incidents.common.IncidentSeverity;
+import com.example.incidents.common.IncidentSeverityLevel;
 import com.example.incidents.common.IncidentType;
 import com.example.incidents.service.Incident;
 import com.example.incidents.service.Location;
@@ -24,18 +24,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
- * Test cases for "IncidentService".
+ * Test cases for "IncidentsService".
  */
 @SpringBootTest
-public class IncidentServiceTest extends BaseTest {
+public class IncidentsServiceTest extends BaseTest {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(IncidentServiceTest.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(IncidentsServiceTest.class);
 
     @Autowired
     IncidentsService incidentsService;
 
     /**
-     * (1) Create incidents for all combinations of "type" and "severity"
+     * (1) Create incidents for all combinations of "incidentType" and "severityLevel"
      * (2) Check, that the number of documents created matches the expected number
      */
     @Test
@@ -43,16 +43,14 @@ public class IncidentServiceTest extends BaseTest {
         try {
             assertIndexIsEmpty();
 
-            // (1) Create incidents for all combinations of "type" and "severity"
+            // (1) Create incidents for all combinations of "incidentType" and "severityLevel"
             createIncidentsProduct();
             flushAndRefreshIndex();
 
             // (2) Check, that the number of documents created matches the expected number
             assertEquals(
-                    (long) IncidentType.values().length * IncidentSeverity.values().length,
-                    esClientFactory
-                            .create()
-                            .countDocuments(configProperties.incidentsIndexName()));
+                    (long) IncidentType.values().length * IncidentSeverityLevel.values().length,
+                    countDocumentsInIndex());
         } catch (Exception exception) {
             LOGGER.error(exception, exception::getMessage);
             fail("Failed with unexpected exception");
@@ -60,7 +58,7 @@ public class IncidentServiceTest extends BaseTest {
     }
 
     /**
-     * (1) Create incidents for all combinations of "type" and "severity"
+     * (1) Create incidents for all combinations of "incidentType" and "severityLevel"
      * (2) Search without search criteria and check, that all entries have been found and are correctly sorted.
      */
     @Test
@@ -68,7 +66,7 @@ public class IncidentServiceTest extends BaseTest {
         try {
             assertIndexIsEmpty();
 
-            // (1) Create incidents for all combinations of "type" and "severity"
+            // (1) Create incidents for all combinations of "incidentType" and "severityLevel"
             final var createdIncidentsMap = createIncidentsProduct();
             flushAndRefreshIndex();
 
@@ -86,10 +84,10 @@ public class IncidentServiceTest extends BaseTest {
     }
 
     /**
-     * (1) Create incidents for all combinations of "type" and "severity"
-     * (2) Search by type = "FIRE" and check number and IDs of result items
-     * (3) Search by type = "POLICE" and severity = "LOW" and check number and IDs of result items
-     * (4) Find created incident with type = "MEDICAL" and severity = "MEDIUM" and take its timestamp.
+     * (1) Create incidents for all combinations of "incidentType" and "severityLevel"
+     * (2) Search by incidentType = "FIRE" and check number and IDs of result items
+     * (3) Search by incidentType = "POLICE" and severityLevel = "LOW" and check number and IDs of result items
+     * (4) Find created incident with incidentType = "MEDICAL" and severityLevel = "MEDIUM" and take its timestamp.
      *     Search by these three criteria and check correct result.
      */
     @Test
@@ -97,11 +95,11 @@ public class IncidentServiceTest extends BaseTest {
         try {
             assertIndexIsEmpty();
 
-            // (1) Create incidents for all combinations of "type" and "severity"
+            // (1) Create incidents for all combinations of "incidentType" and "severityLevel"
             final var createdIncidentsMap = createIncidentsProduct();
             flushAndRefreshIndex();
 
-            // (2) Search by type = "FIRE" and check number and IDs of result items
+            // (2) Search by incidentType = "FIRE" and check number and IDs of result items
             {
                 final var searchResult = incidentsService.search(
                         new SearchCriteria(0, 10000,
@@ -112,7 +110,7 @@ public class IncidentServiceTest extends BaseTest {
                 assertCorrectSorting(searchResult.resultSet());
                 assertEquals(
                         createdIncidentsMap.entrySet().stream()
-                                .filter(entry -> entry.getValue().type().equals(IncidentType.FIRE.name()))
+                                .filter(entry -> entry.getValue().incidentType().equals(IncidentType.FIRE.name()))
                                 .map(Map.Entry::getKey)
                                 .collect(Collectors.toSet()),
                         searchResult.resultSet().stream()
@@ -120,20 +118,20 @@ public class IncidentServiceTest extends BaseTest {
                                 .collect(Collectors.toSet()));
             }
 
-            // (3) Search by type = "POLICE" and severity = "LOW" and check number and IDs of result items
+            // (3) Search by incidentType = "POLICE" and severityLevel = "LOW" and check number and IDs of result items
             {
                 final var searchResult = incidentsService.search(
                         new SearchCriteria(0, 10000,
                                 IncidentType.FIRE,
                                 null, null,
-                                IncidentSeverity.LOW));
+                                IncidentSeverityLevel.LOW));
 
                 assertEquals(1, searchResult.resultSet().size());
                 assertCorrectSorting(searchResult.resultSet());
                 assertEquals(
                         createdIncidentsMap.entrySet().stream()
-                                .filter(entry -> entry.getValue().type().equals(IncidentType.FIRE.name()) &&
-                                        entry.getValue().severity().equals(IncidentSeverity.LOW.name()))
+                                .filter(entry -> entry.getValue().incidentType().equals(IncidentType.FIRE.name()) &&
+                                        entry.getValue().severityLevel().equals(IncidentSeverityLevel.LOW.name()))
                                 .map(Map.Entry::getKey)
                                 .collect(Collectors.toSet()),
                         searchResult.resultSet().stream()
@@ -141,12 +139,12 @@ public class IncidentServiceTest extends BaseTest {
                                 .collect(Collectors.toSet()));
             }
 
-            // (4) Find created incident with type = "MEDICAL" and severity = "MEDIUM" and take its timestamp.
+            // (4) Find created incident with incidentType = "MEDICAL" and severityLevel = "MEDIUM" and take its timestamp.
             //     Search by these three criteria and check correct result.
             {
                 final var expectedIncidents = createdIncidentsMap.values().stream()
-                        .filter(incident -> incident.type().equals(IncidentType.MEDICAL.name()) &&
-                                incident.severity().equals(IncidentSeverity.MEDIUM.name()))
+                        .filter(incident -> incident.incidentType().equals(IncidentType.MEDICAL.name()) &&
+                                incident.severityLevel().equals(IncidentSeverityLevel.MEDIUM.name()))
                         .toList();
                 assertEquals(1, expectedIncidents.size());
 
@@ -156,7 +154,7 @@ public class IncidentServiceTest extends BaseTest {
                                 new SearchCriteria.TimestampRange(
                                         expectedIncidents.get(0).timestamp(),
                                         expectedIncidents.get(0).timestamp()),
-                                IncidentSeverity.MEDIUM));
+                                IncidentSeverityLevel.MEDIUM));
 
                 assertEquals(1, searchResult.resultSet().size());
                 assertEquals(expectedIncidents.get(0).id(), searchResult.resultSet().get(0).id());
@@ -169,9 +167,9 @@ public class IncidentServiceTest extends BaseTest {
 
     /**
      * Search by GeoPoints and distance in km.
-     * Use three positions in and around Klagenfurt with different incident type.
+     * Use three positions in and around Klagenfurt with different "incidentType".
      * Then start searching from the city center with increasing distance.
-     * Repeat the test with additional filtering using the incident type.
+     * Repeat the test with additional filtering using the incident incidentType.
      */
     @Test
     void testSearchGeoPoint() {
@@ -181,15 +179,15 @@ public class IncidentServiceTest extends BaseTest {
             final var cityArcadenId =
                     incidentsService.logIncident(new Incident(UUID.randomUUID(), IncidentType.FIRE,
                             new Location(46.62795042216567, 14.30954467999161),
-                            Instant.now(), IncidentSeverity.MEDIUM));
+                            Instant.now(), IncidentSeverityLevel.MEDIUM));
             final var cineCityId =
                     incidentsService.logIncident(new Incident(UUID.randomUUID(), IncidentType.POLICE,
                             new Location(46.63014491399003, 14.348243786073173),
-                            Instant.now(), IncidentSeverity.MEDIUM));
+                            Instant.now(), IncidentSeverityLevel.MEDIUM));
             final var casinoVeldenId =
                     incidentsService.logIncident(new Incident(UUID.randomUUID(), IncidentType.MEDICAL,
                             new Location(46.615415015670074, 14.043264411560829),
-                            Instant.now(), IncidentSeverity.MEDIUM));
+                            Instant.now(), IncidentSeverityLevel.MEDIUM));
 
             flushAndRefreshIndex();
 
@@ -236,6 +234,7 @@ public class IncidentServiceTest extends BaseTest {
 
     /**
      * Check, that the resultSet-items are sorted by "timestamp" descending.
+     *
      * @param resultSet a list of incidents
      */
     private void assertCorrectSorting(List<Incident> resultSet) {

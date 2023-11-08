@@ -20,9 +20,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Tests for the API (endpoints "/incidents/log" and "/incidents/search".
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
-public class IncidentApiTest extends BaseTest {
+public class IncidentsApiTest extends BaseTest {
 
     // Regular expression to identify a UUID.
     private final Pattern UUID_REGEX =
@@ -43,13 +46,13 @@ public class IncidentApiTest extends BaseTest {
     void testLogIncidentSuccess() throws Exception {
         final var reqBody = """
                 {
-                	"type" : "MEDICAL",
+                	"incidentType" : "MEDICAL",
                 	"location" : {
-                		"latitude" : 5.6,
-                		"longitude" : 7.8
+                		"lat" : 5.6,
+                		"lon" : 7.8
                 	},
                 	"timestamp" : "2023-11-05T17:00:00.00Z",
-                	"severity" : "MEDIUM"
+                	"severityLevel" : "MEDIUM"
                 }
                 """;
 
@@ -71,9 +74,9 @@ public class IncidentApiTest extends BaseTest {
         // This request lacks the "location" values
         final var reqBody = """
                 {
-                	"type" : "POLICE",
+                	"incidentType" : "POLICE",
                 	"timestamp" : "2023-11-05T18:00:00.00Z",
-                	"severity" : "LOW"
+                	"severityLevel" : "LOW"
                 }
                 """;
 
@@ -93,13 +96,13 @@ public class IncidentApiTest extends BaseTest {
     void testLogIncidentsInvalid() throws Exception {
         final var reqBody = """
                 {
-                	"type" : "WRONG",
+                	"incidentType" : "WRONG",
                 	"location" : {
-                		"latitude" : 5.6,
-                		"longitude" : 7.8
+                		"lat" : 5.6,
+                		"lon" : 7.8
                 	},
                 	"timestamp" : "2023-11-05T17:00:00.00Z",
-                	"severity" : "HIGH"
+                	"severityLevel" : "HIGH"
                 }
                 """;
 
@@ -111,7 +114,8 @@ public class IncidentApiTest extends BaseTest {
     }
 
     /**
-     *
+     * Search indices without criteria, but limit the result count to 5.
+     * Expect the most recent 5 entries to be found.
      */
     @Test
     void testSearchLastFive() throws Exception {
@@ -150,7 +154,7 @@ public class IncidentApiTest extends BaseTest {
     }
 
     /**
-     * Send an empty request to /incidents/search and expect a BAD_REQUEST response
+     * Send an empty request to "/incidents/search" and expect a BAD_REQUEST response
      *
      * @throws Exception on a technical error
      */
@@ -169,7 +173,7 @@ public class IncidentApiTest extends BaseTest {
     }
 
     /**
-     * Send a request with an incomplete "locationAndDistance"-element to /incidents/search
+     * Send a request with an incomplete "locationAndDistance"-element to "/incidents/search"
      * and expect a BAD_REQUEST response
      *
      * @throws Exception on a technical error
@@ -194,7 +198,7 @@ public class IncidentApiTest extends BaseTest {
     }
 
     /**
-     * Send a request with an invalid "timestampRange" (min > max) to /incidents/search
+     * Send a request with an invalid "timestampRange" (min > max) to "/incidents/search"
      * and expect a UNPROCESSABLE_ENTITY response
      *
      * @throws Exception on a technical error

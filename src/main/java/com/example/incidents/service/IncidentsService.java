@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Contains all function related to incidents.
+ */
 @Component
 @EnableConfigurationProperties(ConfigProperties.class)
 public class IncidentsService {
@@ -102,9 +105,11 @@ public class IncidentsService {
     private Query buildSearchQuery(SearchCriteria searchCriteria) throws InvalidParameterException {
         final var subQueries = new ArrayList<Query>();
 
-        if (Objects.nonNull(searchCriteria.type())) {
+        if (Objects.nonNull(searchCriteria.incidentType())) {
             subQueries.add(
-                    MatchQuery.of(m -> m.field("type").query(searchCriteria.type().name()))._toQuery());
+                    MatchQuery.of(m -> m.field("incidentType")
+                            .query(searchCriteria.incidentType().name()))
+                            ._toQuery());
         }
 
         if (Objects.nonNull(searchCriteria.locationAndDistance())) {
@@ -129,9 +134,9 @@ public class IncidentsService {
                             .to(timestampRange.maxTimestamp().toString()))._toQuery());
         }
 
-        if (Objects.nonNull(searchCriteria.severity())) {
+        if (Objects.nonNull(searchCriteria.severityLevel())) {
             subQueries.add(
-                    MatchQuery.of(m -> m.field("severity").query(searchCriteria.severity().name()))._toQuery());
+                    MatchQuery.of(m -> m.field("severityLevel").query(searchCriteria.severityLevel().name()))._toQuery());
         }
 
         return BoolQuery.of(b -> b.must(subQueries))._toQuery();

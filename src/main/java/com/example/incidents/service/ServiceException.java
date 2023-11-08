@@ -2,6 +2,10 @@ package com.example.incidents.service;
 
 import org.springframework.http.HttpStatus;
 
+/**
+ * Basic class for all exception thrown in the service layer.
+ * Contains an HTTP-status that the exception can be mapped to.
+ */
 public abstract class ServiceException extends Exception {
 
     private final HttpStatus httpStatus;

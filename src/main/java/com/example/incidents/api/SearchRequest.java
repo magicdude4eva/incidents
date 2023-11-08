@@ -1,6 +1,6 @@
 package com.example.incidents.api;
 
-import com.example.incidents.common.IncidentSeverity;
+import com.example.incidents.common.IncidentSeverityLevel;
 import com.example.incidents.common.IncidentType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
@@ -11,7 +11,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import java.time.Instant;
 
 /**
- * Request body for endpoint "search" in incidents API.
+ * Request body for endpoint "/incidents/search" in incidents API.
  */
 public class SearchRequest {
 
@@ -29,7 +29,7 @@ public class SearchRequest {
     Integer resultCount;
 
     @Valid
-    IncidentType type;
+    IncidentType incidentType;
 
     // Location and distance for searching - allowed to be null.
     // If this element exists, it needs to be complete.
@@ -42,7 +42,7 @@ public class SearchRequest {
     TimestampRange timestampRange;
 
     @Valid
-    IncidentSeverity severity;
+    IncidentSeverityLevel severityLevel;
 
     public static class TimestampRange {
         @NotNull(message = "The minTimestamp is mandatory")
@@ -84,12 +84,12 @@ public class SearchRequest {
         this.resultCount = resultCount;
     }
 
-    public IncidentType getType() {
-        return type;
+    public IncidentType getIncidentType() {
+        return incidentType;
     }
 
-    public void setType(IncidentType type) {
-        this.type = type;
+    public void setIncidentType(IncidentType incidentType) {
+        this.incidentType = incidentType;
     }
 
     public LocationAndDistance getLocationAndDistance() {
@@ -108,11 +108,11 @@ public class SearchRequest {
         this.timestampRange = timestampRange;
     }
 
-    public IncidentSeverity getSeverity() {
-        return severity;
+    public IncidentSeverityLevel getSeverityLevel() {
+        return severityLevel;
     }
 
-    public void setSeverity(IncidentSeverity severity) {
-        this.severity = severity;
+    public void setSeverityLevel(IncidentSeverityLevel severityLevel) {
+        this.severityLevel = severityLevel;
     }
 }

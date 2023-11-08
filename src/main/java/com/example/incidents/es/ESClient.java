@@ -1,7 +1,10 @@
 package com.example.incidents.es;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
+import co.elastic.clients.elasticsearch._types.mapping.DateProperty;
+import co.elastic.clients.elasticsearch._types.mapping.GeoPointProperty;
+import co.elastic.clients.elasticsearch._types.mapping.KeywordProperty;
+import co.elastic.clients.elasticsearch._types.mapping.Property;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.elasticsearch.core.search.TotalHits;
@@ -15,6 +18,7 @@ import org.apache.http.client.CredentialsProvider;
 import org.elasticsearch.client.RestClient;
 
 import javax.net.ssl.SSLContext;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -69,17 +73,42 @@ public class ESClient {
     }
 
     /**
-     * Deletes all documents of the given index in ES if index exists.
+     * Create an index to save incidents if it does not exist yet.
      *
-     * @param indexName ES-index to be deleted
+     * @param indexName the name of the index to be created
      *
-     * @throws ESException when deletion fails
+     * @throws ESException when an ES-error happens
      */
-    public void deleteDocuments(@NotBlank String indexName) throws ESException {
+    public void createIndexForIncidents(@NotBlank String indexName) throws ESException {
+        if (!indexExists(indexName)) {
+            try {
+                final var propertyMappings = Map.of(
+                        "incidentType", Property.of(p -> p.keyword(KeywordProperty.of(k -> k))),
+                        "location", Property.of(p -> p.geoPoint(GeoPointProperty.of(g -> g))),
+                        "timestamp", Property.of(p -> p.date(DateProperty.of(d -> d))),
+                        "severityLevel", Property.of(p -> p.keyword(KeywordProperty.of(k -> k))));
+
+                elasticsearchClient.indices().create(
+                        c -> c.index(indexName)
+                                .settings(s -> s.numberOfShards("1").numberOfReplicas("1"))
+                                .mappings(m -> m.properties(propertyMappings)));
+            } catch (Exception exception) {
+                throw new ESException("indices.create", indexName, exception);
+            }
+        }
+    }
+
+    /**
+     * Delete the given index if it exists.
+     *
+     * @param indexName the name of the ES-index to be deleted
+     *
+     * @throws ESException when an ES-error happens
+     */
+    public void deleteIndex(@NotBlank String indexName) throws ESException {
         if (indexExists(indexName)) {
             try {
-                elasticsearchClient.deleteByQuery(d -> d.index(indexName)
-                        .query(MatchAllQuery.of(m -> m)._toQuery()));
+                elasticsearchClient.indices().delete(d -> d.index(indexName));
             } catch (Exception exception) {
                 throw new ESException("indices.delete", indexName, exception);
             }

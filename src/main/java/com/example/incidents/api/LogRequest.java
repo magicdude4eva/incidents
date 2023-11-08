@@ -1,34 +1,38 @@
 package com.example.incidents.api;
 
-import com.example.incidents.common.IncidentSeverity;
+import com.example.incidents.common.IncidentSeverityLevel;
 import com.example.incidents.common.IncidentType;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.Instant;
 
 /**
- * Request body for endpoint "log" in incidents API.
+ * Request body for endpoint "/incidents/log" in incidents API.
  */
 public class LogRequest {
 
-    @NotNull(message = "The type is required")
-    IncidentType type;
+    @Valid
+    @NotNull(message = "The incidentType is required")
+    IncidentType incidentType;
 
+    @Valid
     @NotNull(message = "The Location is required")
     Location location;
 
     @NotNull(message = "The timestamp is required")
     Instant timestamp;
 
-    @NotNull(message = "The severity is required")
-    IncidentSeverity severity;
+    @Valid
+    @NotNull(message = "The severityLevel is required")
+    IncidentSeverityLevel severityLevel;
 
-    public IncidentType getType() {
-        return type;
+    public IncidentType getIncidentType() {
+        return incidentType;
     }
 
-    public void setType(IncidentType type) {
-        this.type = type;
+    public void setIncidentType(IncidentType incidentType) {
+        this.incidentType = incidentType;
     }
 
     public Location getLocation() {
@@ -47,11 +51,11 @@ public class LogRequest {
         this.timestamp = timestamp;
     }
 
-    public IncidentSeverity getSeverity() {
-        return severity;
+    public IncidentSeverityLevel getSeverityLevel() {
+        return severityLevel;
     }
 
-    public void setSeverity(IncidentSeverity severity) {
-        this.severity = severity;
+    public void setSeverityLevel(IncidentSeverityLevel severityLevel) {
+        this.severityLevel = severityLevel;
     }
 }

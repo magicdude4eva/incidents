@@ -19,8 +19,8 @@ import javax.net.ssl.SSLContext;
 import java.io.IOException;
 
 /**
- * Configures and creates a client for elastic search using the configuration given in "application.properties".
- * The ES-client is a singleton.
+ * Configures and creates a client for ElasticSearch using the configuration given in "application.properties".
+ * The created client is a singleton.
  */
 @Configuration
 @EnableConfigurationProperties(ConfigProperties.class)

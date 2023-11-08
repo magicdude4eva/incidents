@@ -10,5 +10,4 @@ public class TechnicalException extends ServiceException {
     public TechnicalException(String errorMsg, Throwable cause) {
         super(errorMsg, cause, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 }

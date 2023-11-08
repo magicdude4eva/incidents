@@ -1,17 +1,20 @@
 package com.example.incidents.api;
 
-import com.example.incidents.common.IncidentSeverity;
+import com.example.incidents.common.IncidentSeverityLevel;
 import com.example.incidents.common.IncidentType;
 
 import java.time.Instant;
 
+/**
+ * One item in the search response.
+ */
 public class SearchResponseItem {
 
     String id;
-    IncidentType type;
+    IncidentType incidentType;
     Location location;
     Instant timestamp;
-    IncidentSeverity severity;
+    IncidentSeverityLevel severityLevel;
 
     public String getId() {
         return id;
@@ -21,12 +24,12 @@ public class SearchResponseItem {
         this.id = id;
     }
 
-    public IncidentType getType() {
-        return type;
+    public IncidentType getIncidentType() {
+        return incidentType;
     }
 
-    public void setType(IncidentType type) {
-        this.type = type;
+    public void setIncidentType(IncidentType incidentType) {
+        this.incidentType = incidentType;
     }
 
     public Location getLocation() {
@@ -45,11 +48,11 @@ public class SearchResponseItem {
         this.timestamp = timestamp;
     }
 
-    public IncidentSeverity getSeverity() {
-        return severity;
+    public IncidentSeverityLevel getSeverityLevel() {
+        return severityLevel;
     }
 
-    public void setSeverity(IncidentSeverity severity) {
-        this.severity = severity;
+    public void setSeverityLevel(IncidentSeverityLevel severityLevel) {
+        this.severityLevel = severityLevel;
     }
 }

@@ -3,6 +3,9 @@ package com.example.incidents.api;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Response body for endpoint "/incidents/search" in incidents API.
+ */
 public class SearchResponse {
     long totalCount;
     int resultCount;

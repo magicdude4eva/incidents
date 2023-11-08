@@ -9,10 +9,10 @@ import java.util.UUID;
  * Incident as written / read to and from ES.
  *
  * @param id
- * @param type
+ * @param incidentType
  * @param location
  * @param timestamp
- * @param severity
+ * @param severityLevel
  */
-public record Incident(UUID id, String type, GeoPoint location, Instant timestamp, String severity) {
+public record Incident(UUID id, String incidentType, GeoPoint location, Instant timestamp, String severityLevel) {
 }

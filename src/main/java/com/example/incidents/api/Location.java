@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 
 /**
  * Holds a location that will be used for API requests and responses.
- * The fields "latitude" and "longitude" are mandatory.
+ * The fields "lat" (latitude) and "lon" (longitude) are mandatory.
  */
 public class Location {
     @Valid
