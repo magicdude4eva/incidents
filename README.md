@@ -10,16 +10,16 @@ interact with ElasticSearch to log and query real-time emergency incidents.
 ### Implemented features:
 
 1. endpoint `<host>/incidents/log` is available to create new incidents
-2. endpoint `<host>/incidents/search` is available to search for incidents - sorting is done by timestamp descending
-2. Unit-test for service (create & search incidents)
-3. API-tests for `/incidents/log` and `/incidents/search` (positive & negative test cases)
+1. endpoint `<host>/incidents/search` is available to search for incidents - sorting is done by timestamp descending
+1. Unit-test for service (create & search incidents)
+1. API-tests for `/incidents/log` and `/incidents/search` (positive & negative test cases)
 
 ### Missing features:
 
 1. No serialization using Hibernate - all data goes directly into ES
-2. No WebSocket integration
-3. No UI
-4. No dockerization
+1. No WebSocket integration
+1. No UI
+1. No dockerization
 
 
 ### Setup guide
@@ -47,7 +47,7 @@ interact with ElasticSearch to log and query real-time emergency incidents.
 5. Create the basic `incidents` index with the correct mapping:
 
 ```
-curl --ssl-no-revoke --cacert http_ca.crt -u elastic:<password> -X PUT "https://localhost:9200/incidents" -H "Content-Type: application/json" -d' 
+curl --ssl-no-revoke --cacert <project root>/http_ca.crt -u elastic:<password> -X PUT "https://localhost:9200/incidents" -H "Content-Type: application/json" -d' 
 {
     "settings" : {
         "index" : {
@@ -66,6 +66,11 @@ curl --ssl-no-revoke --cacert http_ca.crt -u elastic:<password> -X PUT "https://
 }'
 ```
 
-6. Now test basic setup and functionality: `mvnw clean test`
-6. When tests have finished successfully, the ES connection is working. Start the application: `mvnw spring-boot:run`
-7. Now the endpoints `http://localhost:8080/incidents/logs` and `http://localhost:8080/incidents/search` are available
+
+6. Now test basic setup and functionality:
+    ```
+    chmod a+x mvnw
+    ./mvnw clean test
+    ```
+7. When tests have finished successfully, the ES connection is working. Start the application: `./mvnw spring-boot:run`
+8. Now the endpoints [http://localhost:8080/incidents/logs](http://localhost:8080/incidents/logs) and [http://localhost:8080/incidents/search](http://localhost:8080/incidents/search) are available
