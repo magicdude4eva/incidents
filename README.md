@@ -74,3 +74,35 @@ curl --ssl-no-revoke --cacert <project root>/http_ca.crt -u elastic:<password> -
     ```
 7. When tests have finished successfully, the ES connection is working. Start the application: `./mvnw spring-boot:run`
 8. Now the endpoints [http://localhost:8080/incidents/logs](http://localhost:8080/incidents/logs) and [http://localhost:8080/incidents/search](http://localhost:8080/incidents/search) are available
+
+
+***Example 1 - Creating an Incident:***
+```bash
+curl -X PUT -H "Content-Type: application/json" -d '{
+    "incidentType" : "FIRE",
+    "location" : {
+        "lat" : 5.6,
+        "lon" : 7.8
+    },
+    "timestamp" : "2023-11-05T17:00:00.00Z",
+    "severityLevel" : "MEDIUM"
+}' http://localhost:8080/incidents/log
+```
+
+***Example 2 - Searching for Incidents with Filters:***
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{
+    "offset": 0,
+    "resultCount": 10,
+    "incidentType": "FIRE",
+    "severityLevel": "MEDIUM"
+}' http://localhost:8080/incidents/search
+```
+
+***Example 3 - Searching for Incidents Without Filters:***
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{
+    "offset": 0,
+    "resultCount": 10
+}' http://localhost:8080/incidents/search
+```
