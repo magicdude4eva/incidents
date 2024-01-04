@@ -1,7 +1,8 @@
 repo_name: magicdude4eva/incidents
 report_id: b121dc6d3a517bed0956623eb748aad3
+version: 0.1
 repo_type: Public
-timestamp: '2023-11-09T17:28:16+00:00'
+timestamp: '2024-01-04T15:09:17+00:00'
 requested_by: alexanderkassl
 provider: github
 branch: main
@@ -15,4 +16,5 @@ tools:
   category: Build, Test, Deploy
   sub_category: Version Control System
   image_url: https://img.stackshare.io/service/1046/git.png
+  detection_source_url: https://github.com/magicdude4eva/incidents
   detection_source: Repo Metadata
